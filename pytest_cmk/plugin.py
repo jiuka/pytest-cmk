@@ -4,6 +4,7 @@ import cmk_base.config as config
 import cmk_base.check_api as check_api
 
 from pytest_cmk.data_sources.snmp import MockSNMPDataSource
+from pytest_cmk.data_sources.agent import MockAgentDataSource
 
 @pytest.hookimpl()
 def pytest_sessionstart(session):
@@ -56,3 +57,16 @@ def snmpwalk_attr(request):
 @pytest.fixture
 def snmp_datasource(check_name, snmpwalk_attr):
     return MockSNMPDataSource(check_name, snmpwalk_attr.splitlines())
+
+@pytest.fixture
+def agentout_attr(request):
+    import textwrap
+    if request.cls:
+        if hasattr(request.cls, 'AGENTOUTPUT'):
+            return textwrap.dedent(getattr(request.cls, 'AGENTOUTPUT'))
+    if hasattr(request.module, 'AGENTOUTPUT'):
+        return textwrap.dedent(getattr(request.module, 'AGENTOUTPUT'))
+
+@pytest.fixture
+def agent_datasource(check_name, agentout_attr):
+    return MockAgentDataSource(check_name, agentout_attr)
